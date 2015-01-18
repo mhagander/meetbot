@@ -29,7 +29,12 @@ class IrcBotFactory(protocol.ReconnectingClientFactory):
         protocol.ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
 
 if __name__=="__main__":
-    config.read('meetingbot.ini')
+    if len(sys.argv) == 1:
+        print "Reading configuration from meetingbot.ini"
+        config.read('meetingbot.ini')
+    elif len(sys.argv) == 2:
+        print "Reading configuration from %s" % sys.argv[1]
+        config.read(sys.argv[1])
 
     # Always log to stdout, as we expect this to run interactively. However,
     # if a logfile is configured, log to that as well.
