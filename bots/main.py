@@ -5,6 +5,7 @@ import urllib
 
 import simplejson
 import twisted.web.client
+from twisted.python import log
 
 from stages import BaseStage
 
@@ -86,15 +87,15 @@ class Main(BaseStage):
         self.announce("Entering main bot running mode")
 
     def noticed(self, user, channel, msg):
-        print "Noticed: %s/%s/%s" % (user, channel, msg)
+        log.msg("Noticed: %s/%s/%s" % (user, channel, msg))
 
     def privmsg(self, user, channel, msg):
         # If channel starts with #, it's a regular IRC message.
         # If channel doesn't, then it's a private msg
         if channel == self.bot.channel:
-            print "LOG: %s" % msg
+            log.msg("CHANNEL: %s" % msg)
         elif channel.startswith('#'):
-            print "Message on unknown channel %s: %s" % (channel, msg)
+            log.msg("Received message on unknown channel %s: %s" % (channel, msg))
             return # Don't process that
         elif channel == self.bot.nickname and not msg.startswith('!'):
             self.msg(user, "All commands must be prefixed with an exclamation mark (!). Use !help for information")
@@ -262,14 +263,14 @@ class Main(BaseStage):
                 self.msg(user, "You are now properly identified, and welcome to join the meeting!")
                 self.msg(user, "To do so, please join channel %s" % self.bot.channel)
                 self.bot.invite(user, self.bot.channel)
-                print "Invited %s to the channel" % user
+                log.msg("Invited %s to the channel" % user)
             except Exception, e:
                 self.msg(user, "Failed to talk to authentication server. Sorry, can't let you in at this point.")
-                print "Exception parsing auth callback data: %s" % e
+                log.msg("Exception parsing auth callback data: %s" % e)
 
         def _err(err):
             self.msg(user, "Failed to contact authentication server. Sorry, can't let you in at this point.")
-            print "Failed in auth call to %s, err was: %s" % (url, err)
+            log.msg("Failed in auth call to %s, err was: %s" % (url, err))
 
         twisted.web.client.getPage(url).addCallbacks(callback=_ok, errback=_err)
 
@@ -293,13 +294,13 @@ class Main(BaseStage):
     # Keep track of users in the channel!
     def userJoined(self, user, channel):
         if channel != self.bot.channel:
-            print "User %s joined %s, why was I told?" % (user, channel)
+            log.msg("User %s joined %s, why was I told?" % (user, channel))
             return
 
         # All users should've (a) knocked on the door, and (b) been invited. If they are not
         # in our hash, kick them immediately
         if not self.users.has_key(user):
-            print "Kicking user %s who just joined - not in registry!" % user
+            log.msg("Kicking user %s who just joined - not in registry!" % user)
             self.bot.kick(self.bot.channel, user, "User is not registered. Please knock first.")
             return
 
@@ -308,7 +309,7 @@ class Main(BaseStage):
 
     def userLeft(self, user, channel):
         if not self.users.has_key(user):
-            print "User %s left channel %s, but was not in my registry!" % (user, channel)
+            log.msg("User %s left channel %s, but was not in my registry!" % (user, channel))
             return
         self.users[user]['active'] = False
 

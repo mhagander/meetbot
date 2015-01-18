@@ -1,3 +1,5 @@
+from twisted.python import log
+
 from stages import BaseStage
 
 from waitop import WaitOp
@@ -5,5 +7,5 @@ from waitop import WaitOp
 class PreJoin(BaseStage):
     def joined(self, channel):
         # Joined a channel, check if it's ours
-        print "Joined channel %s, waiting for op" % channel
+        log.msg("Joined channel %s, waiting for op" % channel)
         self.bot.setStage(WaitOp)

@@ -3,8 +3,10 @@
 # Simple meeting-controlling IRC bot
 #
 
+import sys
 
 from twisted.internet import reactor, protocol, ssl
+from twisted.python import log
 
 from ConfigParser import ConfigParser
 
@@ -19,15 +21,25 @@ class IrcBotFactory(protocol.ReconnectingClientFactory):
         return IrcBot(config)
 
     def clientConnectionFailed(self, connector, reason):
-        print "Factory: connection failed (%s)" % reason
+        log.msg("Factory: connection failed (%s)" % reason)
         protocol.ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
 
     def clientConnectionLost(self, connector, reason):
-        print "Factory: connection lost"
+        log.msg("Factory: connection lost")
         protocol.ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
 
 if __name__=="__main__":
     config.read('meetingbot.ini')
+
+    # Always log to stdout, as we expect this to run interactively. However,
+    # if a logfile is configured, log to that as well.
+    log.startLogging(sys.stdout)
+    log.msg('Started stdout logging')
+    if config.has_option('log', 'logfile'):
+        log.startLogging(open(config.get('log', 'logfile'), 'a'))
+        log.msg('Started logging to %s' % config.get('log', 'logfile'))
+    else:
+        log.msg('No log file configured, only logging to stdout')
 
     if config.has_option('irc', 'ssl') and config.getint('irc', 'ssl') == 1:
         reactor.connectSSL(config.get('irc', 'server'),

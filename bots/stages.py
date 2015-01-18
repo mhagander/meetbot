@@ -1,3 +1,4 @@
+from twisted.python import log
 
 class BaseStage(object):
     def __init__(self, bot):
@@ -12,12 +13,14 @@ class BaseStage(object):
     def userLeft(self, user, channel): pass
     def modeChanged(self, user, channel, set, modes, args): pass
 
-    def msg(self, channel, msg):
+    def msg(self, user, msg):
         if hasattr(msg, '__iter__'):
             for m in msg:
-                self.bot.msg(channel, m)
+                log.msg("SENDUSER: {0}: {1}".format(user, m))
+                self.bot.msg(user, m)
         else:
-            self.bot.msg(channel, msg)
+            log.msg("SENDUSER: {0}: {1}".format(user, msg))
+            self.bot.msg(user, msg)
 
 
     def announce(self, msg):

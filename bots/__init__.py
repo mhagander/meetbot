@@ -1,6 +1,7 @@
 from twisted.words.protocols import irc
 from twisted.internet import task
 from twisted.internet import defer
+from twisted.python import log
 
 from initial import Initial
 
@@ -59,21 +60,25 @@ class IrcBot(irc.IRCClient):
 
     def irc_unknown(self, prefix, command, params):
         if command.startswith("ERR_"):
-            print "Received unknown error: %s/%s/%s" % (prefix, command, params)
+            log.msg("Received unknown error: %s/%s/%s" % (prefix, command, params))
 
     # Callables that do something
     def announce(self, msg):
         if hasattr(msg, '__iter__'):
             for m in msg:
+                log.msg("SEND: %s" % m)
                 self.msg(self.channel, m)
         else:
+            log.msg("SEND: %s" % msg)
             self.msg(self.channel, msg)
 
     def channelnotice(self, msg):
         if hasattr(msg, '__iter__'):
             for m in msg:
+                log.msg("ANNOUNCE: %s" % m)
                 self.notice(self.channel, m)
         else:
+            log.msg("ANNOUNCE: %s" % msg)
             self.notice(self.channel, msg)
 
 
