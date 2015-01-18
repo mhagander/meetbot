@@ -1,0 +1,6 @@
+Commands for admins:
+
+!beginmeeting
+-------------
+starts a meeting. Once the meeting is started, no new attendees can join, since we need
+to get a roster of who was actually in the meeting.
