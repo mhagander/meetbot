@@ -4,7 +4,7 @@
 #
 
 
-from twisted.internet import reactor, protocol
+from twisted.internet import reactor, protocol, ssl
 
 from ConfigParser import ConfigParser
 
@@ -29,9 +29,11 @@ class IrcBotFactory(protocol.ReconnectingClientFactory):
 if __name__=="__main__":
     config.read('meetingbot.ini')
 
-    # XXX: This should not be hardcoded, and it should use connectSSL
     if config.has_option('irc', 'ssl') and config.getint('irc', 'ssl') == 1:
-        print "NO SSL YET, STEAL ELSEWHERE"
+        reactor.connectSSL(config.get('irc', 'server'),
+                           config.getint('irc', 'port'),
+                           IrcBotFactory(),
+                           ssl.ClientContextFactory())
     else:
         reactor.connectTCP(config.get('irc', 'server'),
                            config.getint('irc', 'port'),
