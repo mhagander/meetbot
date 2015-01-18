@@ -12,3 +12,6 @@ class Initial(BaseStage):
         # just join the channel
         self.bot.setStage(PreJoin)
         self.bot.join(self.bot.channel)
+
+    def noticed(slef, user, channel, msg):
+        log.msg("Noticed in %s: %s" % (channel, msg))
