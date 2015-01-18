@@ -59,6 +59,11 @@ class IrcBot(irc.IRCClient):
         self.stage.modeChanged(user, channel, set, modes, args)
 
     def irc_unknown(self, prefix, command, params):
+        if command == 'ERR_INVITEONLYCHAN':
+            # special handling of this one
+            self.stage.joinFailed(command, params)
+            return
+
         if command.startswith("ERR_"):
             log.msg("Received unknown error: %s/%s/%s" % (prefix, command, params))
 
