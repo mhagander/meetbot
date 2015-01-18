@@ -176,6 +176,15 @@ class Main(BaseStage):
     cmd_beginmeeting.paramcount = (0,0)
     cmd_beginmeeting.oponly = True
 
+    def cmd_closemeeting(self, user, channel, s):
+        if self.activepoll:
+            return self.msg(user, "This meeting has an open poll, so it cannot be closed.")
+        self.isrunning = False
+        self.channelnotice("This meeting is now finished.")
+    cmd_closemeeting.syntax = '!closemeeting'
+    cmd_closemeeting.paramcount = (0,0)
+    cmd_closemeeting.oponly = True
+
     def cmd_startpoll(self, user, channel, s):
         if not self.isrunning:
             return self.msg(user, "This meeting is not active, so we cannot start a poll!")
