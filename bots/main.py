@@ -64,13 +64,21 @@ class Poll(object):
 
             update = self.votes.has_key(user)
             self.votes[user] = v
+
+            log.msg("User {0}, '{1}' has been {2} to {3}".format(
+                user,
+                self.question,
+                update and 'updated to' or 'cast as',
+                self.options[v-1]))
+
             return "Your vote for '{0}' has been {1} {2}".format(
                 self.question,
                 update and 'updated to' or 'cast as',
                 self.options[v-1])
         except ValueError:
             return "Vote has to be a number!"
-        except:
+        except Exception, ex:
+            self.log("Exception when casting vote for %s: %s" % (user, ex))
             return "Unknown error occurred with voting. Sorry, please try again!"
 
 class Main(BaseStage):
@@ -98,6 +106,7 @@ class Main(BaseStage):
             log.msg("Received message on unknown channel %s: %s" % (channel, msg))
             return # Don't process that
         elif channel == self.bot.nickname and not msg.startswith('!'):
+            log.msg("Received '{0}' from {1}, instructed about prefix".format(msg, user))
             self.msg(user, "All commands must be prefixed with an exclamation mark (!). Use !help for information")
 
         # Trim out part of the username
@@ -113,11 +122,13 @@ class Main(BaseStage):
                 if hasattr(proc, 'oponly'):
                     # Operator only command
                     if not user in self.bot.operators:
+                        log.msg('User {0} tried to execute oponly command {1}!'.format(user, cmd))
                         self.msg(user, "Sorry, command restricted to operators!")
                         return
                 if not hasattr(proc, 'public'):
                     # This user must be in the channel to be ok!
                     if not self.users.has_key(user):
+                        log.msg('User {0} tried to execute command {1} without being in channel'.format(user, cmd))
                         self.msg(user, "Sorry, command not available unless you have joined the channel!")
                         return
                 if hasattr(proc, 'paramcount'):
@@ -272,6 +283,7 @@ class Main(BaseStage):
             self.msg(user, "Failed to contact authentication server. Sorry, can't let you in at this point.")
             log.msg("Failed in auth call to %s, err was: %s" % (url, err))
 
+        log.msg('Initiating fetch of authentication url %s' % url)
         twisted.web.client.getPage(url).addCallbacks(callback=_ok, errback=_err)
 
     cmd_knock.syntax = '!knock <secret>'
