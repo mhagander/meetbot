@@ -59,8 +59,8 @@ class Poll(object):
     def make_vote(self, user, vote):
         try:
             v = int(vote)
-            if v < 1 or v > len(self.options)+1:
-                return "Vote must be a number between 1 and {0}".format(len(self.options)+1)
+            if v < 1 or v > len(self.options):
+                return "Vote must be a number between 1 and {0}".format(len(self.options))
 
             update = self.votes.has_key(user)
             self.votes[user] = v
