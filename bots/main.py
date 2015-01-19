@@ -65,7 +65,7 @@ class Poll(object):
             update = self.votes.has_key(user)
             self.votes[user] = v
 
-            log.msg("User {0}, '{1}' has been {2} to {3}".format(
+            log.msg("User {0}, '{1}' has been {2} {3}".format(
                 user,
                 self.question,
                 update and 'updated to' or 'cast as',
