@@ -98,10 +98,13 @@ class Main(BaseStage):
         log.msg("Noticed: %s/%s/%s" % (user, channel, msg))
 
     def privmsg(self, user, channel, msg):
+        # Trim out part of the username
+        user = user.split('!')[0]
+
         # If channel starts with #, it's a regular IRC message.
         # If channel doesn't, then it's a private msg
         if channel == self.bot.channel:
-            log.msg("CHANNEL: %s" % msg)
+            log.msg("CHANNEL: %s: %s" % (user, msg))
         elif channel.startswith('#'):
             log.msg("Received message on unknown channel %s: %s" % (channel, msg))
             return # Don't process that
@@ -109,8 +112,6 @@ class Main(BaseStage):
             log.msg("Received '{0}' from {1}, instructed about prefix".format(msg, user))
             self.msg(user, "All commands must be prefixed with an exclamation mark (!). Use !help for information")
 
-        # Trim out part of the username
-        user = user.split('!')[0]
 
         if msg.startswith('!'):
             s = shlex.split(msg[1:])
