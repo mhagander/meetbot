@@ -294,6 +294,7 @@ class Main(BaseStage):
             log.msg("Failed in auth call to %s, err was: %s" % (url, err))
 
         log.msg('Initiating fetch of authentication url %s' % url)
+        twisted.web.client.HTTPClientFactory.noisy = False
         twisted.web.client.getPage(url).addCallbacks(callback=_ok, errback=_err)
 
     cmd_knock.syntax = '!knock <secret>'
