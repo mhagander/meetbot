@@ -78,7 +78,7 @@ class Poll(object):
         except ValueError:
             return "Vote has to be a number!"
         except Exception, ex:
-            self.log("Exception when casting vote for %s: %s" % (user, ex))
+            log.msg("Exception when casting vote for %s: %s" % (user, ex))
             return "Unknown error occurred with voting. Sorry, please try again!"
 
 class Main(BaseStage):
