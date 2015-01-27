@@ -328,7 +328,8 @@ class Main(BaseStage):
             return
 
         self.users[user]['active'] = True
-        self.announce("Welcome %s (%s)!" % (self.users[user]['name'], user))
+        welcome = u"Welcome %s (%s)!" % (self.users[user]['name'], user)
+        self.announce(welcome.encode('utf-8'))
 
     def userLeft(self, user, channel):
         if not self.users.has_key(user):
