@@ -3,6 +3,7 @@ from twisted.internet import task
 from twisted.internet import defer
 from twisted.python import log
 
+from chanlog import chanlog
 from initial import Initial
 
 class IrcBot(irc.IRCClient):
@@ -73,18 +74,22 @@ class IrcBot(irc.IRCClient):
             for m in msg:
                 log.msg("SEND: %s" % m)
                 self.msg(self.channel, m)
+                chanlog.log(self.nickname, m)
         else:
             log.msg("SEND: %s" % msg)
             self.msg(self.channel, msg)
+            chanlog.log(self.nickname, msg)
 
     def channelnotice(self, msg):
         if hasattr(msg, '__iter__'):
             for m in msg:
                 log.msg("ANNOUNCE: %s" % m)
                 self.notice(self.channel, m)
+                chanlog.log(self.nickname, u"* {0} *".format(m))
         else:
             log.msg("ANNOUNCE: %s" % msg)
             self.notice(self.channel, msg)
+            chanlog.log(self.nickname, u"* {0} *".format(msg))
 
 
     # Implement the names() command, to get list of users in channel

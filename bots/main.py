@@ -7,6 +7,7 @@ import simplejson
 import twisted.web.client
 from twisted.python import log
 
+from chanlog import chanlog
 from stages import BaseStage
 
 class Poll(object):
@@ -46,6 +47,11 @@ class Poll(object):
                 int(n*100/len(self.votes)),
                 )
         yield '--'
+
+        chanlog.log('*system*', 'Dumping votes')
+        for k,v in sorted(self.votes.items()):
+            chanlog.log('*vote*', u'{0}: {1}'.format(k,v))
+        chanlog.log('*system*', 'End of vote list')
 
     def time_to_close(self):
         if len(self.votes) >= self.maxvotes:
@@ -105,6 +111,7 @@ class Main(BaseStage):
         # If channel doesn't, then it's a private msg
         if channel == self.bot.channel:
             log.msg("CHANNEL: %s: %s" % (user, msg))
+            chanlog.log(user, msg)
         elif channel.startswith('#'):
             log.msg("Received message on unknown channel %s: %s" % (channel, msg))
             return # Don't process that
@@ -173,6 +180,10 @@ class Main(BaseStage):
     def cmd_beginmeeting(self, user, channel, s):
         self.isrunning = True
         self.channelnotice("This meeting is now starting.")
+        chanlog.log('*system*', 'Dumping list of attendees')
+        for nick in sorted(self.users.keys()):
+            chanlog.log('*attendee*', u'{0}: {1} ({2})'.format(nick, self.users[nick]['name'], self.users[nick]['username']))
+        chanlog.log('*system*', 'End of attendee list')
     cmd_beginmeeting.syntax = '!beginmeeting'
     cmd_beginmeeting.paramcount = (0,0)
     cmd_beginmeeting.oponly = True

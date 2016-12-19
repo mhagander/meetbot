@@ -10,6 +10,7 @@ from twisted.python import log
 
 from ConfigParser import ConfigParser
 
+from bots.chanlog import chanlog
 from bots import IrcBot
 
 config = ConfigParser()
@@ -45,6 +46,9 @@ if __name__=="__main__":
         log.msg('Started logging to %s' % config.get('log', 'logfile'))
     else:
         log.msg('No log file configured, only logging to stdout')
+    if config.has_option('log', 'chanlog'):
+        chanlog.open(config.get('log', 'chanlog'))
+
 
     if config.has_option('irc', 'ssl') and config.getint('irc', 'ssl') == 1:
         reactor.connectSSL(config.get('irc', 'server'),
