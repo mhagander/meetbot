@@ -111,7 +111,7 @@ class Main(BaseStage):
         # If channel doesn't, then it's a private msg
         if channel == self.bot.channel:
             log.msg("CHANNEL: %s: %s" % (user, msg))
-            chanlog.log(user, msg)
+            chanlog.log(user, msg.decode('utf8', 'ignore'))
         elif channel.startswith('#'):
             log.msg("Received message on unknown channel %s: %s" % (channel, msg))
             return # Don't process that
