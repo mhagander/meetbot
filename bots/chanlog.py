@@ -9,7 +9,8 @@ class ChannelLog(object):
         self.log('**system**', '*** opening logfile')
 
     def log(self, user, line):
-        self.logfile.write(u"{0:%Y-%m-%d %H:%M:%S} | {1} | {2}\n".format(datetime.now(), user, line))
+        lu = u"{0:%Y-%m-%d %H:%M:%S} | {1} | {2}\n".format(datetime.now(), user, line)
+        self.logfile.write(lu.encode('utf8'))
         self.logfile.flush()
 
 
