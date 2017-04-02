@@ -1,7 +1,7 @@
 from twisted.python import log
 
-from stages import BaseStage
-from main import Main
+from .stages import BaseStage
+from .main import Main
 
 class WaitOp(BaseStage):
     def __init__(self, *args, **kwargs):

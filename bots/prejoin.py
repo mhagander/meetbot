@@ -1,9 +1,9 @@
 from twisted.python import log
 from twisted.internet import reactor
 
-from stages import BaseStage
+from .stages import BaseStage
 
-from waitop import WaitOp
+from .waitop import WaitOp
 
 class PreJoin(BaseStage):
     def joined(self, channel):

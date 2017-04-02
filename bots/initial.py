@@ -1,8 +1,8 @@
 from twisted.python import log
 
-from stages import BaseStage
+from .stages import BaseStage
 
-from prejoin import PreJoin
+from .prejoin import PreJoin
 
 class Initial(BaseStage):
     def signedOn(self):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Simple meeting-controlling IRC bot
 #
@@ -8,7 +8,7 @@ import sys
 from twisted.internet import reactor, protocol, ssl
 from twisted.python import log
 
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 from bots.chanlog import chanlog
 from bots import IrcBot
@@ -31,10 +31,10 @@ class IrcBotFactory(protocol.ReconnectingClientFactory):
 
 if __name__=="__main__":
     if len(sys.argv) == 1:
-        print "Reading configuration from meetingbot.ini"
+        print("Reading configuration from meetingbot.ini")
         config.read('meetingbot.ini')
     elif len(sys.argv) == 2:
-        print "Reading configuration from %s" % sys.argv[1]
+        print("Reading configuration from %s" % sys.argv[1])
         config.read(sys.argv[1])
 
     # Always log to stdout, as we expect this to run interactively. However,

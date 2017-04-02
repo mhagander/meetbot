@@ -22,7 +22,7 @@ class BaseStage(object):
     def modeChanged(self, user, channel, set, modes, args): pass
 
     def msg(self, user, msg):
-        if hasattr(msg, '__iter__'):
+        if not isinstance(msg, str):
             for m in msg:
                 log.msg("SENDUSER: {0}: {1}".format(user, m))
                 self.bot.msg(user, m)

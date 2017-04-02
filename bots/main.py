@@ -1,14 +1,14 @@
 import datetime
 import time
 import shlex
-import urllib
+import urllib.request, urllib.parse
 
-import simplejson
+import json 
 import twisted.web.client
 from twisted.python import log
 
-from chanlog import chanlog
-from stages import BaseStage
+from .chanlog import chanlog
+from .stages import BaseStage
 
 class Poll(object):
     def __init__(self, question, length, options, maxvotes):
@@ -40,7 +40,7 @@ class Poll(object):
     def close_text(self):
         yield "Total votes cast %s (%s eligible)" % (len(self.votes), self.maxvotes)
         for i in range(0,len(self.options)):
-            n = len([v for v in self.votes.values() if v==i+1])
+            n = len([v for v in list(self.votes.values()) if v==i+1])
             yield "{0}: {1} votes ({2}%)".format(
                 self.options[i],
                 n,
@@ -50,7 +50,7 @@ class Poll(object):
 
         chanlog.log('*system*', 'Dumping votes')
         for k,v in sorted(self.votes.items()):
-            chanlog.log('*vote*', u'{0}: {1}'.format(k,v))
+            chanlog.log('*vote*', '{0}: {1}'.format(k,v))
         chanlog.log('*system*', 'End of vote list')
 
     def time_to_close(self):
@@ -68,7 +68,7 @@ class Poll(object):
             if v < 1 or v > len(self.options):
                 return "Vote must be a number between 1 and {0}".format(len(self.options))
 
-            update = self.votes.has_key(user)
+            update = user in self.votes
             self.votes[user] = v
 
             log.msg("User {0}, '{1}' has been {2} {3}".format(
@@ -83,7 +83,7 @@ class Poll(object):
                 self.options[v-1])
         except ValueError:
             return "Vote has to be a number!"
-        except Exception, ex:
+        except Exception as ex:
             log.msg("Exception when casting vote for %s: %s" % (user, ex))
             return "Unknown error occurred with voting. Sorry, please try again!"
 
@@ -111,7 +111,7 @@ class Main(BaseStage):
         # If channel doesn't, then it's a private msg
         if channel == self.bot.channel:
             log.msg("CHANNEL: %s: %s" % (user, msg))
-            chanlog.log(user, msg.decode('utf8', 'ignore'))
+            chanlog.log(user, msg)
         elif channel.startswith('#'):
             log.msg("Received message on unknown channel %s: %s" % (channel, msg))
             return # Don't process that
@@ -135,7 +135,7 @@ class Main(BaseStage):
                         return
                 if not hasattr(proc, 'public'):
                     # This user must be in the channel to be ok!
-                    if not self.users.has_key(user):
+                    if user not in self.users:
                         log.msg('User {0} tried to execute command {1} without being in channel'.format(user, cmd))
                         self.msg(user, "Sorry, command not available unless you have joined the channel!")
                         return
@@ -182,7 +182,7 @@ class Main(BaseStage):
         self.channelnotice("This meeting is now starting.")
         chanlog.log('*system*', 'Dumping list of attendees')
         for nick in sorted(self.users.keys()):
-            chanlog.log('*attendee*', u'{0}: {1} ({2})'.format(nick, self.users[nick]['name'], self.users[nick]['username']))
+            chanlog.log('*attendee*', '{0}: {1} ({2})'.format(nick, self.users[nick]['name'], self.users[nick]['username']))
         chanlog.log('*system*', 'End of attendee list')
     cmd_beginmeeting.syntax = '!beginmeeting'
     cmd_beginmeeting.paramcount = (0,0)
@@ -204,7 +204,7 @@ class Main(BaseStage):
         if self.activepoll:
             return self.msg(user, "There is already an active poll, cannot start a new one")
 
-        poll = Poll(s[0], int(s[1]), s[2:], len([u for u in self.users.values() if u['active']]))
+        poll = Poll(s[0], int(s[1]), s[2:], len([u for u in list(self.users.values()) if u['active']]))
         self.channelnotice("Poll is starting for question '%s'" % poll.question)
         self.announce("To vote, send commands:")
         self.announce(poll.get_option_strings())
@@ -257,7 +257,7 @@ class Main(BaseStage):
 
     def cmd_knock(self, user, channel, s):
         # First thing we do is check if this user already knocked for this meeting
-        if self.users.has_key(user):
+        if user in self.users:
             if self.users[user]['secret'] == s[0]:
                 self.msg(user, "You are already registered for this meeting. Welcome back in!")
                 self.bot.invite(user, self.bot.channel)
@@ -270,21 +270,21 @@ class Main(BaseStage):
             self.msg(user, "This meeting has already started and no new attendees can join at this time. Sorry.")
             return
 
-        url = "{0}?{1}".format(self.bot.config.get('meeting', 'authurl'), urllib.urlencode({
+        url = "{0}?{1}".format(self.bot.config.get('meeting', 'authurl'), urllib.parse.urlencode({
             's': s[0],
             'm': self.bot.config.getint('meeting', 'meetingid'),
             }))
 
         def _ok(val):
             try:
-                r = simplejson.loads(val)
+                r = json.loads(val.decode('utf8', errors='ignore'))
                 # Ok, this user was found
-                if r.has_key('err'):
+                if 'err' in r:
                     self.msg(user, "Could not authenticate you: %s" % r['err'])
                     return
 
                 # Now see if we already have this user with a different nick
-                for n, u in self.users.items():
+                for n, u in list(self.users.items()):
                     if r['username'] == u['username']:
                         self.msg(user, "You are already registered for this meeting with nick %s. Please use the same nick if you reconnect!" % n)
                         return
@@ -296,7 +296,7 @@ class Main(BaseStage):
                 self.msg(user, "To do so, please join channel %s" % self.bot.channel)
                 self.bot.invite(user, self.bot.channel)
                 log.msg("Invited %s to the channel" % user)
-            except Exception, e:
+            except Exception as e:
                 self.msg(user, "Failed to talk to authentication server. Sorry, can't let you in at this point.")
                 log.msg("Exception parsing auth callback data: %s" % e)
 
@@ -306,7 +306,7 @@ class Main(BaseStage):
 
         log.msg('Initiating fetch of authentication url %s' % url)
         twisted.web.client.HTTPClientFactory.noisy = False
-        twisted.web.client.getPage(url).addCallbacks(callback=_ok, errback=_err)
+        twisted.web.client.getPage(url.encode('utf8')).addCallbacks(callback=_ok, errback=_err)
 
     cmd_knock.syntax = '!knock <secret>'
     cmd_knock.paramcount = (1,1)
@@ -333,17 +333,17 @@ class Main(BaseStage):
 
         # All users should've (a) knocked on the door, and (b) been invited. If they are not
         # in our hash, kick them immediately
-        if not self.users.has_key(user):
+        if user not in self.users:
             log.msg("Kicking user %s who just joined - not in registry!" % user)
             self.bot.kick(self.bot.channel, user, "User is not registered. Please knock first.")
             return
 
         self.users[user]['active'] = True
-        welcome = u"Welcome %s (%s)!" % (self.users[user]['name'], user)
-        self.announce(welcome.encode('utf-8'))
+        welcome = "Welcome %s (%s)!" % (self.users[user]['name'], user)
+        self.announce(welcome)
 
     def userLeft(self, user, channel):
-        if not self.users.has_key(user):
+        if user not in self.users:
             log.msg("User %s left channel %s, but was not in my registry!" % (user, channel))
             return
         self.users[user]['active'] = False
