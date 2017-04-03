@@ -95,9 +95,11 @@ class Main(BaseStage):
 
         # Start by adding entries for all our operators
         self.users = {}
-        for o in self.bot.operators:
+        # Any operators *who are already in the channel* will be automatically
+        # added.
+        for o in self.bot.initialops:
             n = self.bot.config.get('operators', o)
-            self.users[o] = {'username':n, 'name': n, 'secret': '', 'active': o in self.bot.initialops}
+            self.users[o] = {'username':n, 'name': n, 'secret': '', 'active': True}
         self.announce("Entering main bot running mode")
 
     def noticed(self, user, channel, msg):
