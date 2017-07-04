@@ -32,7 +32,7 @@ class WaitOp(BaseStage):
             if not n: continue # Sometimes we get the empty string included
             if n == '@{0}'.format(self.bot.nickname): continue
             if n.startswith('@'):
-                if n[1:] in self.bot.operators:
+                if n[1:].lower() in self.bot.operators:
                     self.bot.initialops.append(n[1:])
                     continue
                 n = n[1:] # Strip the @ part from op, so we can kick them
