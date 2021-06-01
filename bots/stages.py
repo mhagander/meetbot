@@ -19,7 +19,8 @@ class BaseStage(object):
     def tick(self): pass
     def userJoined(self, user, channel): pass
     def userLeft(self, user, channel): pass
-    def modeChanged(self, user, channel, set, modes, args): pass
+    def modeChanged(self, user, channel, set, modes, args):
+        print("Mode for {} in {} changed, set {}, modes {}".format(user, channel, set, modes))
 
     def msg(self, user, msg):
         if not isinstance(msg, str):
