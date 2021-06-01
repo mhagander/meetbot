@@ -6,6 +6,9 @@ from .prejoin import PreJoin
 
 class Initial(BaseStage):
     def signedOn(self):
+        log.msg("Signed on, setting my mode to allow DMs")
+        self.bot.sendLine("MODE {} -R".format(self.bot.config.get('irc', 'nick')))
+
         if self.bot.config.has_option('irc', 'nickservpwd'):
             # Authenticate with nickserv, then wait for that to actually
             # complete.
